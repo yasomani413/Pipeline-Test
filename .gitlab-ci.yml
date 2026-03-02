@@ -15,12 +15,16 @@ before_script:
 
 build:
   stage: build
+  tags:
+    - docker
   script:
     - docker build -t $CI_REGISTRY_IMAGE:latest .
     - docker push $CI_REGISTRY_IMAGE:latest
 
 deploy:
   stage: deploy
+  tags:
+    - docker
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest
     - docker stop hello-container || true
