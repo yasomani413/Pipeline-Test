@@ -1,0 +1,19 @@
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  tags:
+    - docker
+  script:
+    - docker build -t hello-app .
+
+deploy:
+  stage: deploy
+  tags:
+    - docker
+  script:
+    - docker stop hello-container || true
+    - docker rm hello-container || true
+    - docker run -d -p 5000:5000 --name hello-container hello-app
