@@ -26,7 +26,8 @@ deploy:
   tags:
     - docker
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest
-    - docker stop hello-container || true
-    - docker rm hello-container || true
-    - docker run -d -p 5000:5000 --name hello-container $CI_REGISTRY_IMAGE:latest
+    - apk add --no-cache openssh-client
+    - ssh yash@172.16.10.203:5000 "docker pull $CI_REGISTRY_IMAGE:latest"
+    - ssh yash@172.16.10.203:5000 "docker stop hello-container || true"
+    - ssh yash@172.16.10.203:5000 "docker rm hello-container || true"
+    - ssh yash@172.16.10.203:5000 "docker run -d -p 5000:5000 --name hello-container $CI_REGISTRY_IMAGE:latest"
