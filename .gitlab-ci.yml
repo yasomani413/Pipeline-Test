@@ -1,8 +1,4 @@
-#test
 image: docker:latest
-
-services:
-  - docker:dind
 
 variables:
   DOCKER_TLS_CERTDIR: ""
@@ -20,6 +16,8 @@ build:
     - docker
   services:
     - docker:dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
   script:
     - docker build -t $CI_REGISTRY_IMAGE:latest .
     - docker images $CI_REGISTRY_IMAGE:latest
@@ -29,6 +27,9 @@ deploy:
   stage: deploy
   tags:
     - docker-socket
+  services: []
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest
     - docker stop hello-container || true
