@@ -2,7 +2,7 @@ image: docker:latest
 
 variables:
   DOCKER_TLS_CERTDIR: ""
-  IMAGE_TAG: ${CI_COMMIT_TAG:-latest}  # uses git tag if available, else 'latest'
+  IMAGE_TAG: "latest"   # default
 
 stages:
   - build
@@ -21,7 +21,10 @@ build:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: ""
+    IMAGE_TAG: ${CI_COMMIT_TAG:-latest}   # overridden per job
   script:
+    - echo "Building with tag $IMAGE_TAG"
+    - IMAGE_TAG=${CI_COMMIT_TAG:-latest}  # resolve in shell explicitly
     - docker build -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
     - docker images $CI_REGISTRY_IMAGE:$IMAGE_TAG
     - docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
@@ -34,6 +37,8 @@ deploy:
   variables:
     DOCKER_HOST: unix:///var/run/docker.sock
   script:
+    - IMAGE_TAG=${CI_COMMIT_TAG:-latest}  # resolve in shell explicitly
+    - echo "Deploying tag $IMAGE_TAG"
     - docker pull $CI_REGISTRY_IMAGE:$IMAGE_TAG
     - docker stop hello-container || true
     - docker rm hello-container || true
