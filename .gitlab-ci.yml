@@ -18,14 +18,17 @@ build:
   stage: build
   tags:
     - docker
+  services:
+    -docker:dind
   script:
     - docker build -t $CI_REGISTRY_IMAGE:latest .
+    - docker images $CI_REGISTRY_IMAGE:latest
     - docker push $CI_REGISTRY_IMAGE:latest
 
 deploy:
   stage: deploy
   tags:
-    - docker
+    - docker-socket
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest
     - docker stop hello-container || true
