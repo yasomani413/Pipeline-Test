@@ -7,10 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 COPY index.html .
-COPY init.sql .
-
-# Init the DB from SQL file
-RUN python -c "import sqlite3; conn = sqlite3.connect('tasks.db'); conn.executescript(open('init.sql').read()); conn.commit(); conn.close()"
 
 EXPOSE 5000
 
