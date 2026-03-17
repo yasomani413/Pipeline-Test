@@ -50,7 +50,7 @@ def update_task(task_id):
     task = cur.fetchone()
     if not task:
         return jsonify({"error": "not found"}), 404
-    done = data.get("done", task["done"])
+    done = bool(data.get("done", task["done"]))
     title = data.get("title", task["title"])
     cur.execute("UPDATE tasks SET title = %s, done = %s WHERE id = %s RETURNING *", (title, done, task_id))
     task = cur.fetchone()
