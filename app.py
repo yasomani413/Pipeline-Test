@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import psycopg2
 import psycopg2.extras
@@ -12,6 +12,10 @@ DB_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@db:5432/
 def get_db():
     conn = psycopg2.connect(DB_URL)
     return conn
+
+@app.route("/")
+def index():
+    return send_file("index.html")
 
 @app.route("/health")
 def health():

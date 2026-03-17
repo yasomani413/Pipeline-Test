@@ -30,7 +30,7 @@
   <div id="list"></div>
 
   <script>
-    const API = window.API_URL || "http://localhost:5000";
+    const API = window.location.origin;
 
     async function load() {
       const res = await fetch(`${API}/tasks`);
