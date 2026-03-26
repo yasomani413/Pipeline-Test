@@ -42,7 +42,8 @@
           <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggle(${t.id}, this.checked)" />
           <span>${t.title}</span>
           <button class="del" onclick="del(${t.id})">✕</button>
-        </div>`).join("");
+        </div>
+       `).join("");
     }
 
     async function addTask() {
