@@ -20,7 +20,8 @@ services:
       retries: 5
 
   app:
-    image: gitlab.spit.ac.in:5050/devops/pipeline-test:latest
+    build.
+    image: gitlab.spit.ac.in:5050/devops/pipeline-test:${IMAGE_TAG}
     restart: always
     ports:
       - "5000:5000"
