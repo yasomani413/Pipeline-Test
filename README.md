@@ -1,92 +1,406 @@
-# Pipeline Test
+# Containerized CI/CD Deployment Platform
 
+A containerized Flask application with PostgreSQL, automated using **GitLab CI/CD, GitLab Runner, Docker, Docker-in-Docker, and a private container registry**.
 
+The project demonstrates an end-to-end CI/CD workflow where application code is built into a Docker image, pushed to a private GitLab Container Registry, and automatically deployed using Docker Compose.
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Architecture
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
+```text
+                    Developer
+                        |
+                        | git push / git tag
+                        v
+                +----------------+
+                | GitLab         |
+                | Repository     |
+                +-------+--------+
+                        |
+                        | Pipeline Trigger
+                        v
+                +----------------+
+                | GitLab Runner  |
+                +-------+--------+
+                        |
+                 Docker-in-Docker
+                        |
+                        v
+                +----------------+
+                | Docker Build   |
+                | Flask Image    |
+                +-------+--------+
+                        |
+                        | docker push
+                        v
+              +----------------------+
+              | GitLab Container     |
+              | Registry             |
+              +----------+-----------+
+                         |
+                         | docker pull
+                         v
+              +----------------------+
+              | Deployment Server    |
+              |                      |
+              |  +----------------+  |
+              |  | Flask App      |  |
+              |  | Container      |  |
+              |  +-------+--------+  |
+              |          |           |
+              |          v           |
+              |  +----------------+  |
+              |  | PostgreSQL     |  |
+              |  | Container      |  |
+              |  +----------------+  |
+              +----------------------+
 ```
-cd existing_repo
-git remote add origin https://gitlab.spit.ac.in/devops/pipeline-test.git
-git branch -M main
-git push -uf origin main
+
+---
+
+## Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **Python / Flask** | Backend web application |
+| **PostgreSQL** | Relational database |
+| **Docker** | Application containerization |
+| **Docker Compose** | Multi-container application deployment |
+| **GitLab CI/CD** | CI/CD pipeline automation |
+| **GitLab Runner** | Pipeline job execution |
+| **Docker-in-Docker** | Docker image builds inside CI |
+| **GitLab Container Registry** | Private Docker image storage |
+| **Git** | Source control and versioning |
+| **Jenkins** | CI/CD pipeline configuration included in the project |
+
+---
+
+## Project Structure
+
+```text
+Pipeline-Test/
+│
+├── .gitlab-ci.yml
+├── Dockerfile
+├── docker-compose.yml
+├── Jenkinsfile
+├── app.py
+├── index.html
+├── init.sql
+├── requirements.txt
+└── README.md
 ```
 
-## Integrate with your tools
+### Important files
 
-- [ ] [Set up project integrations](https://gitlab.spit.ac.in/devops/pipeline-test/-/settings/integrations)
+**`.gitlab-ci.yml`**
 
-## Collaborate with your team
+Defines the GitLab CI/CD pipeline with separate build and deployment stages.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+**`Dockerfile`**
 
-## Test and Deploy
+Defines how the Flask application is packaged into a Docker image.
 
-Use the built-in continuous integration in GitLab.
+**`docker-compose.yml`**
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+Defines the Flask application and PostgreSQL services and their configuration.
 
-***
+**`init.sql`**
 
-# Editing this README
+Initializes the PostgreSQL database schema.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+**`Jenkinsfile`**
 
-## Suggestions for a good README
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Contains the Jenkins pipeline configuration used for CI/CD experimentation.
 
-## Name
-Choose a self-explaining name for your project.
+---
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+# CI/CD Pipeline
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+The GitLab pipeline consists of two primary stages:
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```text
+Build
+  |
+  v
+Deploy
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## 1. Build Stage
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+The build job runs using a Docker-based GitLab Runner.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Docker-in-Docker is used to provide a Docker daemon inside the CI environment.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+The pipeline:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+1. Authenticates with the GitLab Container Registry.
+2. Determines the Docker image tag.
+3. Builds the Flask application image.
+4. Tags the image.
+5. Pushes the image to the GitLab Container Registry.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Example workflow:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+```bash
+docker build -t $CI_REGISTRY_IMAGE:$IMAGE_TAG .
+docker push $CI_REGISTRY_IMAGE:$IMAGE_TAG
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+The image tag is based on the Git commit tag when available, otherwise `latest` is used.
 
-## License
-For open source projects, say how it is licensed.
+---
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+## 2. Deploy Stage
+
+The deployment job runs on a Docker-enabled runner.
+
+The pipeline:
+
+```bash
+docker-compose down
+docker-compose pull
+docker-compose up -d
+```
+
+This stops the existing application, pulls the required application image from the private registry, and starts the updated application stack.
+
+---
+
+# Docker Architecture
+
+The application is deployed as multiple containers using Docker Compose.
+
+```text
+Docker Compose
+│
+├── Flask Application
+│   ├── Port: 5000
+│   └── Connects to PostgreSQL
+│
+└── PostgreSQL
+    ├── Port: 5432
+    └── Persistent Docker Volume
+```
+
+The Flask application communicates with PostgreSQL through the Docker Compose service name:
+
+```text
+db
+```
+
+The database connection is configured using:
+
+```text
+postgresql://postgres:postgres@db:5432/tasksdb
+```
+
+The PostgreSQL container uses a persistent Docker volume:
+
+```text
+pg_data
+```
+
+to preserve database data across container restarts.
+
+---
+
+# Image Versioning
+
+The pipeline supports Git-tag-based Docker image versioning.
+
+For example:
+
+```text
+Git tag
+   |
+   +-- ver0.1
+   +-- ver0.2
+   +-- ver0.3
+```
+
+A Git tag can be used as the Docker image tag:
+
+```text
+gitlab.spit.ac.in:5050/devops/pipeline-test:ver0.3
+```
+
+If no Git tag is available, the pipeline falls back to:
+
+```text
+latest
+```
+
+This allows different application versions to be stored and deployed independently.
+
+---
+
+# PostgreSQL
+
+The PostgreSQL service uses:
+
+```text
+postgres:16-alpine
+```
+
+Database configuration:
+
+```text
+Database: tasksdb
+User:     postgres
+Port:     5432
+```
+
+The database is initialized using:
+
+```text
+init.sql
+```
+
+A Docker health check is also configured using:
+
+```bash
+pg_isready -U postgres
+```
+
+The Flask application waits for PostgreSQL to become healthy before starting.
+
+---
+
+# Running Locally
+
+## Prerequisites
+
+Install:
+
+- Docker
+- Docker Compose
+- Git
+
+Clone the repository:
+
+```bash
+git clone https://github.com/yasomani413/Pipeline-Test.git
+cd Pipeline-Test
+```
+
+Start the application stack:
+
+```bash
+docker compose up -d
+```
+
+Check running containers:
+
+```bash
+docker ps
+```
+
+The application will be available at:
+
+```text
+http://localhost:5000
+```
+
+PostgreSQL will be exposed on:
+
+```text
+localhost:5432
+```
+
+To stop the application:
+
+```bash
+docker compose down
+```
+
+---
+
+# CI/CD Workflow
+
+The complete workflow is:
+
+```text
+1. Developer pushes code
+          |
+          v
+2. GitLab repository updated
+          |
+          v
+3. GitLab pipeline triggered
+          |
+          v
+4. GitLab Runner executes build job
+          |
+          v
+5. Docker-in-Docker builds application image
+          |
+          v
+6. Image pushed to GitLab Container Registry
+          |
+          v
+7. Deploy job starts
+          |
+          v
+8. Deployment server pulls image
+          |
+          v
+9. Docker Compose recreates application
+          |
+          v
+10. Flask + PostgreSQL running
+```
+
+---
+
+# Key DevOps Concepts Demonstrated
+
+This project demonstrates practical experience with:
+
+- CI/CD pipeline automation
+- GitLab CI/CD
+- GitLab Runner
+- Docker containerization
+- Docker-in-Docker
+- Docker Compose
+- Private container registries
+- Docker image tagging
+- Git-based versioning
+- Automated deployment
+- Multi-container application architecture
+- PostgreSQL containerization
+- Persistent Docker volumes
+- Container health checks
+- Linux-based deployment environments
+
+---
+
+# Future Improvements
+
+Potential improvements to the project include:
+
+- Add automated unit and integration testing
+- Add SonarQube code-quality analysis
+- Add vulnerability scanning for Docker images
+- Add environment-specific deployments
+- Introduce staging and production environments
+- Implement deployment rollback
+- Replace Docker Compose deployment with Kubernetes
+- Add Prometheus and Grafana monitoring
+- Add centralized logging
+- Implement secrets management
+- Add GitLab deployment environments
+- Introduce blue-green or rolling deployments
+
+---
+
+## Author
+
+**Yash Somani**
+
+Computer Engineering | DevOps | Infrastructure
+
+[GitHub](https://github.com/yasomani413)
+
+[LinkedIn](https://www.linkedin.com/in/yash-somani-958216205/)
